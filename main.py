@@ -17,7 +17,6 @@ def get_available_aps():
         try:
             process = subprocess.Popen("netsh wlan show networks mode=bssid", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, _ = process.communicate()
-            output = output.decode(errors='ignore')  # Ignore decoding errors
 
             signals = re.findall(r'Signal\s*:\s*(\d+)%', output, re.DOTALL)
             ssids = []
@@ -42,12 +41,11 @@ def get_available_aps():
 
 
 
-
 # Positions fixes des points d'accès
 predefined_positions = [
-    np.array([2, 2]),
-    np.array([8, 2]),
-    np.array([7, 7])
+    np.array([5, 5]),
+    np.array([10, 26]),
+    np.array([18, 9])
 ]
 
 '''
@@ -69,6 +67,44 @@ def trilaterate(positions, distances):
 '''
 
 def trilaterate(positions, distances):
+    if len(distances) < 3:
+        raise ValueError("Trois points d'acces sont requis.")
+    
+    # Extract the distances dynamically
+    distances_list = list(distances.values())
+
+    # Extract the positions dynamically
+    position_keys = list(positions.keys())
+
+    if len(distances_list) != 3 or len(position_keys) != 3:
+        raise ValueError("Il faut exactement trois points d'accès avec leurs distances respectives.")
+
+    # Extract distances (r1, r2, r3)
+    r1, r2, r3 = distances_list
+
+    # Extract positions (x1, y1), (x2, y2), (x3, y3)
+    x1, y1 = positions[position_keys[0]]
+    x2, y2 = positions[position_keys[1]]
+    x3, y3 = positions[position_keys[2]]
+
+    # Set up the equations for trilateration
+    A = np.array([
+        [2 * (x1 - x2), 2 * (y1 - y2)],
+        [2 * (x1 - x3), 2 * (y1 - y3)]
+    ])
+    
+    B = np.array([
+        [r1**2 - r2**2 + x2**2 - x1**2 + y2**2 - y1**2],
+        [r1**2 - r3**2 + x3**2 - x1**2 + y3**2 - y1**2]
+    ])
+    
+    # Solve for the position
+    position = np.linalg.solve(A, B)
+
+    return position
+    
+    
+    '''
     # Ensure we have exactly three access points to trilaterate
     if len(positions) != 3 or len(distances) != 3:
         raise ValueError("Exactly three access points are required for trilateration.")
@@ -104,6 +140,7 @@ def trilaterate(positions, distances):
     y = (D - A * x) / B
 
     return np.array([x, y])
+    '''
 
 # Récupérer les points d'accès et calculer les distances
 aps = get_available_aps()
@@ -116,21 +153,30 @@ for i, (ssid, signal) in enumerate(aps):
     distance = calculate_distance_mobile_AP(rssi)
     distances[ssid] = distance
     
-    # Assign a position from predefined positions if ssid is new
     if ssid not in positions:
         if i < len(predefined_positions):
             positions[ssid] = predefined_positions[i]
         else:
-            # Add a fallback position if we run out of predefined positions
-            positions[ssid] = np.array([0, 0])  # You could make this more dynamic if needed
+            positions[ssid] = np.array([0, 0])
 
 
 # Estimer la position si nous avons au moins trois distances
 if len(distances) >= 3:
+   # Get the first 3 positions and distances
+    positions_list = list(positions.items())[:3]  # Slice first 3 positions
+    distances_list = list(distances.items())[:3]     # Slice first 3 distances
+
+    # Convert the lists back to dictionaries
+    positions = dict(positions_list)
+    distances = dict(distances_list)
+
+    # Now you can trilaterate with the selected positions and distances
     estimated_position = trilaterate(positions, distances)
+    print("Estimated Position:", estimated_position)
 else:
     estimated_position = None
     print("Pas assez de points d'accès pour estimer la position.")
+
 
 # Affichage graphique des cercles de distance et de la position estimée
 fig, ax = plt.subplots()
@@ -145,8 +191,8 @@ if estimated_position is not None:
     ax.plot(estimated_position[0], estimated_position[1], 'x', color='red', markersize=10, label='Position Estimée')
 
 # Configurer le graphique
-ax.set_xlim(0, 10)
-ax.set_ylim(0, 10)
+ax.set_xlim(0, 50)
+ax.set_ylim(0, 50)
 ax.set_aspect('equal', 'box')
 ax.legend()
 
