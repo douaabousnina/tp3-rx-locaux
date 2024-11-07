@@ -48,9 +48,9 @@ AP2 = np.array([8, 2])
 AP3 = np.array([5, 6])
 
 # RSSI mesurés (exemple, à remplacer par vos valeurs réelles)
-rssi1 = -60  # RSSI à partir du point d'accès 1
+rssi1 = -70  # RSSI à partir du point d'accès 1
 rssi2 = -65  # RSSI à partir du point d'accès 2
-rssi3 = -60  # RSSI à partir du point d'accès 3
+rssi3 = -70  # RSSI à partir du point d'accès 3
 
 d1 = calculate_distance_mobile_AP(rssi1)
 d2 = calculate_distance_mobile_AP(rssi2)
@@ -84,7 +84,6 @@ plt.title("Position estimée du mobile")
 plt.xlabel("X")
 plt.ylabel("Y")
 plt.show()
-
 
 
 
