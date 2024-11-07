@@ -1,7 +1,6 @@
 import subprocess
 import re
 import platform
-import math
 
 
 def calculate_distance_mobile_AP(rssi, measured_power=-50, environmental_factor=3):
@@ -10,6 +9,7 @@ def calculate_distance_mobile_AP(rssi, measured_power=-50, environmental_factor=
 
 def convert_percent_to_dbm(percentage):
     # dB = 10 * math.log10(percentage/100)
+    # check this link out ph : https://stackoverflow.com/questions/15797920/how-to-convert-wifi-signal-strength-from-quality-percent-to-rssi-dbm
     dB = (percentage / 2) - 100
     return dB
 
@@ -20,7 +20,7 @@ def get_wifi_rssi():
             output, error = process.communicate()
 
             if process.returncode != 0:
-                print("Error retrieving WiFi signal strength:", error.decode('latin-1'))
+                print("Erreur cmd:", error.decode('latin-1'))
                 return None
 
             output = output.decode('latin-1')
@@ -28,14 +28,12 @@ def get_wifi_rssi():
             if matches:
                 percentage = int(matches[0])
                 rssi = convert_percent_to_dbm(percentage)
-                print(rssi)
-                print(percentage)
                 return rssi
             else:
-                print("Signal strength not found in output.")
+                print("Erreur calculant rssi.")
                 return None
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Erreur: {e}")
             return None
     else:
         raise Exception('Unsupported OS')
@@ -45,6 +43,8 @@ def get_wifi_rssi():
 wifi_rssi = get_wifi_rssi()
 if wifi_rssi is not None:
     distance = calculate_distance_mobile_AP(wifi_rssi)
-    print(f"Estimated distance to the WiFi access point: {distance:.2f} meters")
+    print(f"Distance estimée: {distance:.2f} m")
 else:
-    print("Could not determine WiFi signal strength.")
+    print("Erreur calculant rssi.")
+    
+    
