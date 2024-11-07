@@ -4,7 +4,7 @@ import platform
 import numpy as np
 import matplotlib.pyplot as plt
 
-def calculate_distance_mobile_AP(rssi, measured_power=-50, environmental_factor=2):
+def calculate_distance_mobile_AP(rssi, measured_power=-50, environmental_factor=3):
     distance = 10 ** ((measured_power - rssi) / (10 * environmental_factor))
     return distance
 
@@ -17,6 +17,7 @@ def get_available_aps():
         try:
             process = subprocess.Popen("netsh wlan show networks mode=bssid", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, _ = process.communicate()
+            output = output.decode(errors='ignore')
 
             signals = re.findall(r'Signal\s*:\s*(\d+)%', output, re.DOTALL)
             ssids = []
@@ -40,12 +41,11 @@ def get_available_aps():
 
 
 
-
 # Positions fixes des points d'accès
 predefined_positions = [
-    np.array([5, 5]),
-    np.array([10, 26]),
-    np.array([18, 9])
+    np.array([2,0]),
+    np.array([8,0]),
+    np.array([2.5, 7.5])
 ]
 
 '''
@@ -97,6 +97,9 @@ def trilaterate(positions, distances):
         [r1**2 - r2**2 + x2**2 - x1**2 + y2**2 - y1**2],
         [r1**2 - r3**2 + x3**2 - x1**2 + y3**2 - y1**2]
     ])
+    
+    print("A:", A)
+    print("B: ",B)
     
     # Solve for the position
     position = np.linalg.solve(A, B)
@@ -191,8 +194,8 @@ if estimated_position is not None:
     ax.plot(estimated_position[0], estimated_position[1], 'x', color='red', markersize=10, label='Position Estimée')
 
 # Configurer le graphique
-ax.set_xlim(0, 50)
-ax.set_ylim(0, 50)
+ax.set_xlim(-100, 100)
+ax.set_ylim(-100, 100)
 ax.set_aspect('equal', 'box')
 ax.legend()
 
