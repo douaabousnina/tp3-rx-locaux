@@ -42,9 +42,9 @@ def get_available_aps():
 
 
 predefined_positions = [
-    np.array([2,0]),
-    np.array([8,0]),
-    np.array([2.5, 7.5])
+    np.array([2,1]),
+    np.array([-1,0]),
+    np.array([1,-2])
 ]
 
 def trilaterate(positions, distances):
@@ -124,14 +124,15 @@ if distances:
 if estimated_position is not None:
     ax.plot(estimated_position[0], estimated_position[1], 'x', color='red', markersize=10, label='Position Estimée')
 
-ax.set_xlim(-100, 100)
-ax.set_ylim(-100, 100)
+ax.set_xlim(-10, 10)
+ax.set_ylim(-10, 10)
 ax.set_aspect('equal', 'box')
 ax.legend()
 
 plt.title("Position Estimée du Mobile par Rapport aux Points d'Accès")
 plt.xlabel("X")
 plt.ylabel("Y")
+plt.grid()
 plt.show()
 
 
